@@ -26,7 +26,7 @@ export const connectDB = async () => {
       id SERIAL PRIMARY KEY,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
-      type VARCHAR(15),
+      type VARCHAR(15) NOT NULL,
       status VARCHAR(10) DEFAULT 'open',
       reporter_id INT UNIQUE REFERENCES users(id) ON DELETE CASCADE,
 
