@@ -55,9 +55,9 @@ const loginUser = async (reqBody: { email: string; password: string }) => {
   // step-3 if matching the password then create a token
 
   const payload = {
+    id: user.id,
     name: user.name,
     email: user.email,
-    password: user.password,
     role: user.role,
   };
 
@@ -101,9 +101,9 @@ const refreshToken = async (refreshToken: string) => {
   const user = userData.rows[0];
 
   const payload = {
+    id: user.id,
     name: user.name,
     email: user.email,
-    password: user.password,
     role: user.role,
   };
 

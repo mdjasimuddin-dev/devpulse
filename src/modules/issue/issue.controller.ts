@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { issuesService } from './issue.services';
 
 const createIssues = async (req: Request, res: Response) => {
-  const userId = 1;
+  const userId = req?.user?.id;
 
   try {
     const result = await issuesService.issueCreateIntoDB(req.body, userId);
