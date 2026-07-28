@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser';
 import express, { type Request, type Response } from 'express';
 import { authRoute } from './modules/auth/auth.route';
 import { issueRoute } from './modules/issue/issue.route';
+import auth from './middleware/middleware.index';
 
 const app = express();
 
