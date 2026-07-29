@@ -16,4 +16,51 @@ const issueCreateIntoDB = async (reqBody: issuesInFace, userId: number) => {
   return issues;
 };
 
-export const issuesService = { issueCreateIntoDB };
+const findAllIssues = async (query: any) => {
+  const { sort = 'newest', type, status } = query;
+
+  // dynamic query build
+  let sql = `SELECT * FROM issues WHERE 1=1`;
+  const values = [];
+
+  if (type) {
+    values.push(type);
+    sql += ` AND type = $${values.length}`;
+  }
+
+  if (status) {
+    values.push(status);
+    sql += ` AND status = $${values.length}`;
+  }
+
+  // sort
+  if (sort === 'newest') {
+    sql += ` ORDER BY created_at DESC`;
+  } else if (sort === 'oldest') {
+    sql += ` ORDER BY created_at ASC`;
+  }
+
+  // step-1 : find all issue
+  const issues = await pool.query(sql, values);
+
+  // step-2 : find reporter by id
+
+  for (const issue of issues.rows) {
+    const reporter = await pool.query(
+      `
+      SELECT id, name, role FROM users WHERE id = $1
+      `,
+      [issue.reporter_id]
+    );
+
+    issue.reporter = reporter.rows[0];
+
+    delete issue.reporter_id;
+  }
+
+  // console.log('issues console : ', issues.rows);
+
+  return issues;
+};
+
+export const issuesService = { issueCreateIntoDB, findAllIssues };
