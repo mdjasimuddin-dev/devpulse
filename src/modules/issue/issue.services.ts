@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { issuesInFace } from './issue.interface';
 import { pool } from '../../database/db.index';
+import { error } from 'console';
 
 const issueCreateIntoDB = async (reqBody: issuesInFace, userId: number) => {
   const { title, description, type, status } = reqBody;
@@ -63,4 +64,37 @@ const findAllIssues = async (query: any) => {
   return issues;
 };
 
-export const issuesService = { issueCreateIntoDB, findAllIssues };
+const singleIssue = async (IssueId: string) => {
+  // console.log('Issue single Id : ', IssueId);
+
+  // step-1 : find issues details
+  const issues = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [IssueId]
+  );
+
+  if (issues.rows.length === 0) {
+    throw new Error('Issue not found!');
+  }
+
+  // step-2 : find issues reporter by id
+
+  for (const issueInfo of issues.rows) {
+    const reporter = await pool.query(
+      `
+      SELECT id, name, role FROM users WHERE id = $1
+      `,
+      [issueInfo.reporter_id]
+    );
+
+    issueInfo.reporter = reporter.rows[0];
+
+    delete issueInfo.reporter_id;
+  }
+
+  return issues;
+};
+
+export const issuesService = { issueCreateIntoDB, findAllIssues, singleIssue };
