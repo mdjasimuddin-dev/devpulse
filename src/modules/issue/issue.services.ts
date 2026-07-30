@@ -97,4 +97,46 @@ const singleIssue = async (IssueId: string) => {
   return issues;
 };
 
-export const issuesService = { issueCreateIntoDB, findAllIssues, singleIssue };
+const updateIssues = async (payload: any, id: string, userId: string) => {
+  // step-1 : check user by userId
+  const user = await pool.query(
+    `
+      SELECT id, name, email, role FROM users WHERE id=$1
+      `,
+    [userId]
+  );
+
+  if (user.rows.length === 0) {
+    throw new Error('User not found');
+  }
+
+  const currentUser = user.rows[0];
+
+  // step-2 : issue find by id
+  const issue = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id]
+  );
+
+  if (issue.rows.length === 0) {
+    throw new Error('Issue not found');
+  }
+
+  const issueData = issue.rows[0];
+
+  // Maintainer
+  if (currentUser.role !== 'maintainer') {
+    if (issueData.reporter_id !== Number(userId)) {
+      throw new Error("You can't update this issue");
+    }
+
+    // Open
+    if (issueData.status !== 'open') {
+      throw new Error('Only open issues can be updated');
+    }
+  }
+};
+
+export const issuesService = { issueCreateIntoDB, findAllIssues, singleIssue, updateIssues };

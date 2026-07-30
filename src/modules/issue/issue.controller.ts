@@ -61,4 +61,28 @@ const readSingleIssue = async (req: Request, res: Response) => {
   }
 };
 
-export const issuesController = { createIssues, readAllIssues, readSingleIssue };
+const updateIssue = async (req: Request, res: Response) => {
+  try {
+    const reqBody = req.body;
+    const id = req.params.id;
+    const user_Id = req?.user?.id;
+
+    // console.log('User Id find : ', reqBody, id, user_Id);
+
+    const result = await issuesService.updateIssues(reqBody, id as string, user_Id as string);
+
+    res.status(200).json({
+      status: true,
+      message: 'Issue update successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      status: false,
+      message: 'Something is wrong!',
+      data: error.toString(),
+    });
+  }
+};
+
+export const issuesController = { createIssues, readAllIssues, readSingleIssue, updateIssue };
