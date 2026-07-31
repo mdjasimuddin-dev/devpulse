@@ -63,7 +63,7 @@ const loginUser = async (reqBody: { email: string; password: string }) => {
 
   // create accessToken
   const accessToken = jwt.sign(payload, config.token_secret as string, {
-    expiresIn: '15min',
+    expiresIn: '1d',
   });
 
   // create accessToken
@@ -109,7 +109,7 @@ const refreshToken = async (refreshToken: string) => {
 
   // create accessToken
   const accessToken = jwt.sign(payload, config.token_secret as string, {
-    expiresIn: '15min',
+    expiresIn: '1d',
   });
 
   return { accessToken };

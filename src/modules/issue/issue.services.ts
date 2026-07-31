@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
 import type { issuesInFace } from './issue.interface';
 import { pool } from '../../database/db.index';
-import { error } from 'console';
 
 const issueCreateIntoDB = async (reqBody: issuesInFace, userId: number) => {
   const { title, description, type, status } = reqBody;
@@ -97,8 +96,8 @@ const singleIssue = async (IssueId: string) => {
   return issues;
 };
 
-const updateIssues = async (payload: any, id: string, userId: string) => {
-  // step-1 : check user by userId
+const updateIssues = async (payload: issuesInFace, id: string, userId: string) => {
+  // step-1 : find current user
   const user = await pool.query(
     `
       SELECT id, name, email, role FROM users WHERE id=$1
@@ -110,9 +109,10 @@ const updateIssues = async (payload: any, id: string, userId: string) => {
     throw new Error('User not found');
   }
 
+  // current user
   const currentUser = user.rows[0];
 
-  // step-2 : issue find by id
+  // step-2 : Issue find
   const issue = await pool.query(
     `
     SELECT * FROM issues WHERE id=$1
@@ -120,23 +120,65 @@ const updateIssues = async (payload: any, id: string, userId: string) => {
     [id]
   );
 
+  // console.log(issue.rows);
+
   if (issue.rows.length === 0) {
     throw new Error('Issue not found');
   }
 
+  // current issue
   const issueData = issue.rows[0];
+  // console.log(issueData);
 
-  // Maintainer
-  if (currentUser.role !== 'maintainer') {
-    if (issueData.reporter_id !== Number(userId)) {
-      throw new Error("You can't update this issue");
-    }
+  // step-3: update query
 
-    // Open
-    if (issueData.status !== 'open') {
-      throw new Error('Only open issues can be updated');
-    }
+  if (currentUser.role === 'maintainer') {
+    const { title, description, type, status } = payload;
+
+    const updatedIssue = await pool.query(
+      `
+      UPDATE issues
+      SET
+        title = COALESCE($1, title),
+        description = COALESCE($2, description),
+        type = COALESCE($3, type),
+        status = COALESCE($4, status),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5
+      RETURNING *
+      `,
+      [title, description, type, status, id]
+    );
+
+    console.log('User update successfully', updatedIssue.rows);
+  } else if (
+    currentUser.role == 'contributor' &&
+    issueData.status === 'open' &&
+    issueData.reporter_id == currentUser.id
+  ) {
+    const { title, description, type, status } = payload;
+
+    const updateData = await pool.query(
+      `
+    UPDATE issues
+    SET
+      title = COALESCE($1, title),
+      description = COALESCE($2, description),
+      type = COALESCE($3, type),
+      status = COALESCE($4, type),
+      updated_at = CURRENT_TIMESTAMP
+      WHERE id =$5
+      RETURNING *
+    `,
+      [title, description, type, status, id]
+    );
+
+    return updateData.rows;
+  } else {
+    throw new Error('You cannot update this. Your access is limitation.');
   }
+
+  return updateIssues;
 };
 
 export const issuesService = { issueCreateIntoDB, findAllIssues, singleIssue, updateIssues };
