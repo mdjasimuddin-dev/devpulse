@@ -85,4 +85,31 @@ const updateIssue = async (req: Request, res: Response) => {
   }
 };
 
-export const issuesController = { createIssues, readAllIssues, readSingleIssue, updateIssue };
+const deleteIssue = async (req: Request, res: Response) => {
+  try {
+    const userId = req?.user?.id;
+    const id = req.params.id;
+
+    const result = await issuesService.deleteIssues(userId as string, id as string);
+
+    res.status(200).json({
+      status: true,
+      message: 'Issue Delete successfully',
+      data: result,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      status: false,
+      message: 'Something is wrong!',
+      data: error.toString(),
+    });
+  }
+};
+
+export const issuesController = {
+  createIssues,
+  readAllIssues,
+  readSingleIssue,
+  updateIssue,
+  deleteIssue,
+};

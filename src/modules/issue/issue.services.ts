@@ -181,4 +181,60 @@ const updateIssues = async (payload: issuesInFace, id: string, userId: string) =
   return updateIssues;
 };
 
-export const issuesService = { issueCreateIntoDB, findAllIssues, singleIssue, updateIssues };
+const deleteIssues = async (userId: string, id: string) => {
+  // step-1 : find your by user id
+  const userInfo = await pool.query(
+    `
+      SELECT id, name, role FROM users WHERE id = $1
+      `,
+    [userId]
+  );
+
+  if (userInfo.rows.length === 0) {
+    throw new Error('User not found');
+  }
+
+  // step-2 : find issues details by id
+  const issues = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id]
+  );
+
+  if (issues.rows.length === 0) {
+    throw new Error('Issue not found');
+  }
+
+  // step-3 : check authorize
+
+  const role = userInfo.rows[0].role;
+
+  if (role !== 'maintainer') {
+    throw new Error('Only maintainer can delete issues');
+  }
+
+  const deletedItem = await pool.query(
+    `
+    DELETE FROM issues WHERE id =$1
+    RETURNING *
+    `,
+    [id]
+  );
+
+  if (deletedItem.rows.length === 0) {
+    throw new Error('Issue not found');
+  }
+
+  console.log('Deleted Item :', deletedItem.rows);
+
+  return deletedItem.rows[0];
+};
+
+export const issuesService = {
+  issueCreateIntoDB,
+  findAllIssues,
+  singleIssue,
+  updateIssues,
+  deleteIssues,
+};
