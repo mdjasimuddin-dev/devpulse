@@ -1,23 +1,23 @@
 import type { Request, Response } from 'express';
 import { authService } from './auth.services';
+import sendResponse from '../../utility/sendResponse';
 
 const createUser = async (req: Request, res: Response) => {
-  const data = req.body;
-  console.log('Request Body Data : ', data);
-
   try {
     const result = await authService.createUserIntoDB(req.body);
 
-    res.status(201).json({
-      status: true,
+    sendResponse(res, {
+      statusCode: 201,
+      success: true,
       message: 'User registered successfully',
       data: result.rows[0],
     });
   } catch (error: any) {
-    res.status(400).json({
-      status: false,
-      message: 'Something is wrong',
-      data: error.toString(),
+    sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: 'Bad request. try again latter',
+      data: error,
     });
   }
 };
@@ -34,16 +34,17 @@ const loginUser = async (req: Request, res: Response) => {
       sameSite: 'lax',
     });
 
-    res.status(200).json({
-      status: true,
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
       message: 'Login successful',
       data: result,
     });
   } catch (error: any) {
-    res.status(403).json({
-      status: false,
+    sendResponse(res, {
+      statusCode: 201,
+      success: false,
       message: 'Unauthorize Access',
-      data: error.toString(),
     });
   }
 };
@@ -54,16 +55,17 @@ const refreshToken = async (req: Request, res: Response) => {
 
     const result = await authService.refreshToken(token);
 
-    res.status(200).json({
-      status: true,
-      message: 'Refresh Token Create successfully.',
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Refresh Token Generate Successfully.',
       data: result,
     });
   } catch (error: any) {
-    res.status(401).json({
-      status: false,
-      message: 'Unauthorize access.',
-      data: error.toString(),
+    sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: 'Bad request, try again later.',
     });
   }
 };
