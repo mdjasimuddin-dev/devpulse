@@ -2,10 +2,8 @@
 
 DevPulse is a collaborative platform for software teams to report bugs, suggest features, and coordinate resolutions efficiently. It provides a robust backend API with secure role-based access control.
 
-🔗 **Live API URL:** [https://dev-pulse-one-sage.vercel.app](https://dev-pulse-one-sage.vercel.app)
-🔗 **Github Project URL:** [https://github.com/mdjasimuddin-dev/devpulse.git](https://github.com/mdjasimuddin-dev/devpulse.git)
-🔗 **Live API URL:** [https://dev-pulse-one-sage.vercel.app](https://dev-pulse-one-sage.vercel.app)
-
+🔗 **Live API URL:** [https://dev-pulse-one-sage.vercel.app](https://dev-pulse-one-sage.vercel.app) _
+🔗 **Github Project URL:** [https://github.com/mdjasimuddin-dev/devpulse.git](https://github.com/mdjasimuddin-dev/devpulse.git) _
 
 ## ✨ Features
 
@@ -79,6 +77,6 @@ Follow these steps to set up the project locally:
 ### 1. Clone the repository
 
 ```bash
-git clone [https://github.com/mdjasimuddin-dev/devpulse.git](https://github.com/mdjasimuddin-dev/devpulse.git)
+git clone https://github.com/mdjasimuddin-dev/devpulse.git
 cd DevPulse
 ```
