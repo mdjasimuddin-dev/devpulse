@@ -150,11 +150,12 @@ const updateIssues = async (payload: issuesInFace, id: string, userId: string) =
       [title, description, type, status, id]
     );
 
-    console.log('User update successfully', updatedIssue.rows);
+    // console.log('User update successfully', updatedIssue);
+    return updatedIssue;
   } else if (
     currentUser.role == 'contributor' &&
     issueData.status === 'open' &&
-    issueData.reporter_id == currentUser.id
+    issueData.reporter_id === currentUser.id
   ) {
     const { title, description, type, status } = payload;
 
@@ -173,12 +174,12 @@ const updateIssues = async (payload: issuesInFace, id: string, userId: string) =
       [title, description, type, status, id]
     );
 
-    return updateData.rows;
+    console.log('UpdatedData :', updateData);
+
+    return updateData;
   } else {
     throw new Error('You cannot update this. Your access is limitation.');
   }
-
-  return updateIssues;
 };
 
 const deleteIssues = async (userId: string, id: string) => {

@@ -78,15 +78,15 @@ const updateIssue = async (req: Request, res: Response) => {
     sendResponse(res, {
       statusCode: 200,
       success: true,
-      message: 'Issue update successfully',
-      data: result,
+      message: 'Issue updated successfully',
+      data: result.rows[0],
     });
   } catch (error: any) {
     sendResponse(res, {
       statusCode: 400,
       success: false,
       message: 'Bad request. Something is wrong',
-      error: error,
+      // error: error,
     });
   }
 };
@@ -102,7 +102,7 @@ const deleteIssue = async (req: Request, res: Response) => {
       statusCode: 200,
       success: true,
       message: 'Issue Delete successfully',
-      data: result,
+      // data: result,
     });
   } catch (error: any) {
     sendResponse(res, {

@@ -26,9 +26,9 @@ const loginUser = async (req: Request, res: Response) => {
   try {
     const result = await authService.loginUser(req.body);
 
-    const { refresh_token } = result;
+    const { token } = result;
 
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie('access_token', token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
@@ -49,25 +49,25 @@ const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-const refreshToken = async (req: Request, res: Response) => {
-  try {
-    const token = req.cookies.refresh_token;
+// const refreshToken = async (req: Request, res: Response) => {
+//   try {
+//     const token = req.cookies.refresh_token;
 
-    const result = await authService.refreshToken(token);
+//     const result = await authService.refreshToken(token);
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: 'Refresh Token Generate Successfully.',
-      data: result,
-    });
-  } catch (error: any) {
-    sendResponse(res, {
-      statusCode: 400,
-      success: false,
-      message: 'Bad request, try again later.',
-    });
-  }
-};
+//     sendResponse(res, {
+//       statusCode: 200,
+//       success: true,
+//       message: 'Refresh Token Generate Successfully.',
+//       data: result,
+//     });
+//   } catch (error: any) {
+//     sendResponse(res, {
+//       statusCode: 400,
+//       success: false,
+//       message: 'Bad request, try again later.',
+//     });
+//   }
+// };
 
-export const authController = { createUser, loginUser, refreshToken };
+export const authController = { createUser, loginUser };

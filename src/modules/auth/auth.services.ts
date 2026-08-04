@@ -39,7 +39,7 @@ const loginUser = async (reqBody: { email: string; password: string }) => {
   );
 
   if (userData.rows.length === 0) {
-    throw new Error('Invalid Credentials');
+    throw new Error('User not found!');
   }
 
   // step-2 if user exists then matching the user password
@@ -67,52 +67,52 @@ const loginUser = async (reqBody: { email: string; password: string }) => {
   });
 
   // create accessToken
-  const refreshToken = jwt.sign(payload, config.refresh_token_secret as string, {
-    expiresIn: '30d',
-  });
+  // const refreshToken = jwt.sign(payload, config.refresh_token_secret as string, {
+  //   expiresIn: '30d',
+  // });
 
-  const token = { token: accessToken, refresh_token: refreshToken, user: user };
+  const token = { token: accessToken, user: user };
 
   delete user.password;
 
   return token;
 };
 
-const refreshToken = async (refreshToken: string) => {
-  const token = refreshToken;
+// const refreshToken = async (refreshToken: string) => {
+//   const token = refreshToken;
 
-  if (!token) {
-    throw new Error('Unauthorize access');
-  }
+//   if (!token) {
+//     throw new Error('Unauthorize access');
+//   }
 
-  const decoded = (await jwt.verify(token, config.refresh_token_secret as string)) as JwtPayload;
+//   const decoded = (await jwt.verify(token, config.refresh_token_secret as string)) as JwtPayload;
 
-  const userData = await pool.query(
-    `
-    SELECT * FROM users WHERE email = $1
-    `,
-    [decoded.email]
-  );
+//   const userData = await pool.query(
+//     `
+//     SELECT * FROM users WHERE email = $1
+//     `,
+//     [decoded.email]
+//   );
 
-  if (userData.rows.length === 0) {
-    throw new Error('User not found!');
-  }
+//   if (userData.rows.length === 0) {
+//     throw new Error('User not found!');
+//   }
 
-  const user = userData.rows[0];
+//   const user = userData.rows[0];
 
-  const payload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+//   const payload = {
+//     id: user.id,
+//     name: user.name,
+//     email: user.email,
+//     role: user.role,
+//   };
 
-  // create accessToken
-  const accessToken = jwt.sign(payload, config.token_secret as string, {
-    expiresIn: '1d',
-  });
+//   // create accessToken
+//   const accessToken = jwt.sign(payload, config.token_secret as string, {
+//     expiresIn: '1d',
+//   });
 
-  return { accessToken };
-};
+//   return { accessToken };
+// };
 
-export const authService = { createUserIntoDB, loginUser, refreshToken };
+export const authService = { createUserIntoDB, loginUser };

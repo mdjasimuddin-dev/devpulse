@@ -90,7 +90,7 @@ var loginUser = async (reqBody) => {
     [email]
   );
   if (userData.rows.length === 0) {
-    throw new Error("Invalid Credentials");
+    throw new Error("User not found!");
   }
   const user = userData.rows[0];
   const matchPassword = await bcrypt.compare(password, user.password);
@@ -106,41 +106,11 @@ var loginUser = async (reqBody) => {
   const accessToken = jwt.sign(payload, config_index_default.token_secret, {
     expiresIn: "1d"
   });
-  const refreshToken3 = jwt.sign(payload, config_index_default.refresh_token_secret, {
-    expiresIn: "30d"
-  });
-  const token = { token: accessToken, refresh_token: refreshToken3, user };
+  const token = { token: accessToken, user };
   delete user.password;
   return token;
 };
-var refreshToken = async (refreshToken3) => {
-  const token = refreshToken3;
-  if (!token) {
-    throw new Error("Unauthorize access");
-  }
-  const decoded = await jwt.verify(token, config_index_default.refresh_token_secret);
-  const userData = await pool.query(
-    `
-    SELECT * FROM users WHERE email = $1
-    `,
-    [decoded.email]
-  );
-  if (userData.rows.length === 0) {
-    throw new Error("User not found!");
-  }
-  const user = userData.rows[0];
-  const payload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role
-  };
-  const accessToken = jwt.sign(payload, config_index_default.token_secret, {
-    expiresIn: "1d"
-  });
-  return { accessToken };
-};
-var authService = { createUserIntoDB, loginUser, refreshToken };
+var authService = { createUserIntoDB, loginUser };
 
 // src/utility/sendResponse.ts
 var sendResponse = (res, data) => {
@@ -175,8 +145,8 @@ var createUser = async (req, res) => {
 var loginUser2 = async (req, res) => {
   try {
     const result = await authService.loginUser(req.body);
-    const { refresh_token } = result;
-    res.cookie("refresh_token", refresh_token, {
+    const { token } = result;
+    res.cookie("access_token", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax"
@@ -195,31 +165,12 @@ var loginUser2 = async (req, res) => {
     });
   }
 };
-var refreshToken2 = async (req, res) => {
-  try {
-    const token = req.cookies.refresh_token;
-    const result = await authService.refreshToken(token);
-    sendResponse_default(res, {
-      statusCode: 200,
-      success: true,
-      message: "Refresh Token Generate Successfully.",
-      data: result
-    });
-  } catch (error) {
-    sendResponse_default(res, {
-      statusCode: 400,
-      success: false,
-      message: "Bad request, try again later."
-    });
-  }
-};
-var authController = { createUser, loginUser: loginUser2, refreshToken: refreshToken2 };
+var authController = { createUser, loginUser: loginUser2 };
 
 // src/modules/auth/auth.route.ts
 var router = Router();
 router.post("/signup", authController.createUser);
 router.post("/login", authController.loginUser);
-router.post("/refresh-token", authController.refreshToken);
 var authRoute = router;
 
 // src/modules/issue/issue.route.ts
@@ -326,8 +277,8 @@ var updateIssues = async (payload, id, userId) => {
       `,
       [title, description, type, status, id]
     );
-    console.log("User update successfully", updatedIssue.rows);
-  } else if (currentUser.role == "contributor" && issueData.status === "open" && issueData.reporter_id == currentUser.id) {
+    return updatedIssue;
+  } else if (currentUser.role == "contributor" && issueData.status === "open" && issueData.reporter_id === currentUser.id) {
     const { title, description, type, status } = payload;
     const updateData = await pool.query(
       `
@@ -343,11 +294,11 @@ var updateIssues = async (payload, id, userId) => {
     `,
       [title, description, type, status, id]
     );
-    return updateData.rows;
+    console.log("UpdatedData :", updateData);
+    return updateData;
   } else {
     throw new Error("You cannot update this. Your access is limitation.");
   }
-  return updateIssues;
 };
 var deleteIssues = async (userId, id) => {
   const userInfo = await pool.query(
@@ -457,15 +408,15 @@ var updateIssue = async (req, res) => {
     sendResponse_default(res, {
       statusCode: 200,
       success: true,
-      message: "Issue update successfully",
-      data: result
+      message: "Issue updated successfully",
+      data: result.rows[0]
     });
   } catch (error) {
     sendResponse_default(res, {
       statusCode: 400,
       success: false,
-      message: "Bad request. Something is wrong",
-      error
+      message: "Bad request. Something is wrong"
+      // error: error,
     });
   }
 };
@@ -477,8 +428,8 @@ var deleteIssue = async (req, res) => {
     sendResponse_default(res, {
       statusCode: 200,
       success: true,
-      message: "Issue Delete successfully",
-      data: result
+      message: "Issue Delete successfully"
+      // data: result,
     });
   } catch (error) {
     sendResponse_default(res, {
